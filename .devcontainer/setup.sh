@@ -15,13 +15,8 @@ mkdir -p "$HOME/.ssh"
 rm -f "$SSH_KEY_PATH" "$SSH_KEY_PATH.pub"
 ssh-keygen -t ed25519 -f "$SSH_KEY_PATH" -N "" -C "tp-cd-deploy"
 
-echo "==> Injection de la clé publique dans le conteneur SSH-target..."
-cp "$SSH_KEY_PATH.pub" "$WORKSPACE/docker/ssh-target/authorized_keys"
-
 echo "==> Création du fichier de secrets pour act..."
-cat > "$WORKSPACE/.secrets" <<EOF
-SSH_PRIVATE_KEY=$(cat "$SSH_KEY_PATH")
-EOF
+{ printf 'SSH_PRIVATE_KEY="'; cat "$SSH_KEY_PATH"; printf '"'; } > "$WORKSPACE/.secrets"
 chmod 600 "$WORKSPACE/.secrets"
 
 echo "==> Configuration SSH locale (évite les prompts de vérification de l'hôte)..."
@@ -36,6 +31,21 @@ chmod 600 "$HOME/.ssh/config"
 
 echo "==> Démarrage des conteneurs Docker (Verdaccio + SSH-target)..."
 docker compose -f "$WORKSPACE/docker-compose.yml" up -d --build
+
+echo "==> Connexion du devcontainer au réseau Docker cd-network..."
+docker network connect tp-cd-api_cd-network "$(hostname)" 2>/dev/null || true
+
+echo "==> Démarrage des relais socat (localhost → conteneurs Docker)..."
+# Tue les éventuels anciens processus socat sur ces ports
+pkill -f "socat TCP-LISTEN:4873" 2>/dev/null || true
+pkill -f "socat TCP-LISTEN:2222" 2>/dev/null || true
+pkill -f "socat TCP-LISTEN:3001" 2>/dev/null || true
+nohup socat TCP-LISTEN:4873,fork,reuseaddr TCP:verdaccio:4873 > /dev/null 2>&1 &
+nohup socat TCP-LISTEN:2222,fork,reuseaddr TCP:ssh-target:22  > /dev/null 2>&1 &
+nohup socat TCP-LISTEN:3001,fork,reuseaddr TCP:ssh-target:3000 > /dev/null 2>&1 &
+
+echo "==> Injection de la clé publique dans le conteneur SSH-target..."
+docker exec ssh-target sh -c "echo '$(cat "$SSH_KEY_PATH.pub")' > /home/deployer/.ssh/authorized_keys && chmod 600 /home/deployer/.ssh/authorized_keys && chown deployer:deployer /home/deployer/.ssh/authorized_keys"
 
 echo "==> Attente du démarrage de Verdaccio..."
 until curl -sf http://localhost:4873/-/ping > /dev/null 2>&1; do

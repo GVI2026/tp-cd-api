@@ -56,7 +56,7 @@ DATABASE_URL="./dev.db" npx ts-node db/seed.ts
 # Générer les clés SSH
 ssh-keygen -t ed25519 -f ~/.ssh/tp_cd_key -N "" -C "tp-cd-deploy"
 cp ~/.ssh/tp_cd_key.pub docker/ssh-target/authorized_keys
-printf 'SSH_PRIVATE_KEY=%s\n' "$(cat ~/.ssh/tp_cd_key)" > .secrets && chmod 600 .secrets
+printf 'SSH_PRIVATE_KEY="' > .secrets && cat ~/.ssh/tp_cd_key >> .secrets && printf '"' >> .secrets && chmod 600 .secrets
 
 # Démarrer l'infrastructure
 docker compose up -d --build

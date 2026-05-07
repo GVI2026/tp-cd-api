@@ -3,3 +3,4 @@
 --network=host
 --secret-file .secrets
 --container-options=--volume=tp-cd-api-act-npm:/root/.npm
+--artifact-server-path /tmp/act-artifacts
