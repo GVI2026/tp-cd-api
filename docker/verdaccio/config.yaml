@@ -1,0 +1,38 @@
+# Configuration Verdaccio — registre npm privé local
+# Documentation : https://verdaccio.org/docs/configuration
+
+storage: /verdaccio/storage/data
+auth:
+  htpasswd:
+    file: /verdaccio/storage/htpasswd
+    # Autoriser l'inscription sans mot de passe pour le TP local
+    max_users: -1
+
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+
+packages:
+  # Packages publiés localement (tp-cd-api)
+  'tp-cd-api':
+    access: $all
+    publish: $all
+    unpublish: $all
+
+  # Tous les autres packages → proxy vers npm public
+  '**':
+    access: $all
+    publish: $all
+    proxy: npmjs
+
+server:
+  keepAliveTimeout: 60
+
+middlewares:
+  audit:
+    enabled: true
+
+log:
+  type: stdout
+  format: pretty
+  level: warn

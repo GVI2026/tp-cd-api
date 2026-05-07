@@ -1,0 +1,32 @@
+services:
+  verdaccio:
+    image: verdaccio/verdaccio:5
+    container_name: verdaccio
+    ports:
+      - '4873:4873'
+    volumes:
+      - ./docker/verdaccio/config.yaml:/verdaccio/conf/config.yaml
+      - verdaccio-storage:/verdaccio/storage
+    networks:
+      - cd-network
+
+  ssh-target:
+    build:
+      context: ./docker/ssh-target
+    container_name: ssh-target
+    ports:
+      - '2222:22'
+      - '3001:3000'
+    volumes:
+      - ./docker/ssh-target/authorized_keys:/home/deployer/.ssh/authorized_keys:ro
+    networks:
+      - cd-network
+    depends_on:
+      - verdaccio
+
+networks:
+  cd-network:
+    driver: bridge
+
+volumes:
+  verdaccio-storage:

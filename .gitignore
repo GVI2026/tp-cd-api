@@ -1,0 +1,43 @@
+# Dépendances
+node_modules/
+
+# Build
+dist/
+
+# Variables d'environnement (ne jamais committer)
+.env
+
+# Base de données SQLite (générée localement)
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Couverture de code
+coverage/
+
+# Cache
+.eslintcache
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+!.vscode/extensions.json
+
+# TypeScript incremental
+*.tsbuildinfo
+
+# Secrets act (clé SSH privée — ne jamais committer)
+.secrets
+
+# Clé publique SSH générée localement (recréée par postCreateCommand)
+docker/ssh-target/authorized_keys
+
+# CHANGELOG et bumps gérés par semantic-release — suivis par git mais générés automatiquement

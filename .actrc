@@ -1,0 +1,5 @@
+-P ubuntu-latest=catthehacker/ubuntu:act-24.04
+--pull=false
+--network=host
+--secret-file .secrets
+--container-options=--volume=tp-cd-api-act-npm:/root/.npm

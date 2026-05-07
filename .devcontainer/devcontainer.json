@@ -1,0 +1,43 @@
+{
+  "name": "tp-cd-api",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:24",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "nestjs.vscode-nestjs-schematics",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "firsttris.vscode-jest-runner"
+      ]
+    }
+  },
+
+  "forwardPorts": [3000, 4873, 2222, 3001],
+
+  "mounts": [
+    "source=tp-cd-api-npm-cache,target=/home/node/.npm,type=volume"
+  ],
+
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+
+  "remoteUser": "node",
+
+  "remoteEnv": {
+    "GIT_AUTHOR_NAME": "${localEnv:GIT_AUTHOR_NAME:}",
+    "GIT_AUTHOR_EMAIL": "${localEnv:GIT_AUTHOR_EMAIL:}",
+    "GIT_COMMITTER_NAME": "${localEnv:GIT_COMMITTER_NAME:}",
+    "GIT_COMMITTER_EMAIL": "${localEnv:GIT_COMMITTER_EMAIL:}"
+  },
+
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "configureZshAsDefaultShell": true,
+      "upgradePackages": false
+    },
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "moby": false
+    }
+  }
+}

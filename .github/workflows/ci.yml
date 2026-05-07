@@ -1,0 +1,174 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  install:
+    name: Installation des dépendances
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Restaurer le cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Installer les dépendances
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci
+
+  format-lint:
+    name: Formatage & Lint
+    runs-on: ubuntu-latest
+    needs: [install]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Restaurer le cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Vérifier le formatage (Prettier)
+        run: npm run format:check
+
+      - name: Analyser le code (ESLint + SonarJS)
+        run: npm run lint
+
+  tests:
+    name: Tests unitaires
+    runs-on: ubuntu-latest
+    needs: [format-lint]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Restaurer le cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Lancer les tests avec couverture
+        run: npm run test:ci
+
+  tests-e2e:
+    name: Tests E2E (Supertest)
+    runs-on: ubuntu-latest
+    needs: [tests]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Restaurer le cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Lancer les tests E2E
+        run: npm run test:e2e
+        env:
+          DATABASE_URL: ':memory:'
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [tests-e2e]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Restaurer le cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Compiler l'application
+        run: npm run build
+
+      - name: Sauvegarder le build
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-dist
+          path: dist/
+
+  security:
+    name: Scan de sécurité (Trivy)
+    runs-on: ubuntu-latest
+    needs: [build]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer Trivy
+        run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Scanner les dépendances npm
+        run: trivy fs --exit-code 0 --severity CRITICAL,HIGH --no-progress .
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # EXERCICE 1 : Ajouter un job "semantic-release" ici
+  # Ce job doit :
+  #   - Dépendre du job "security"
+  #   - S'exécuter uniquement sur la branche main
+  #   - Checkout avec fetch-depth: 0 (pour que semantic-release lise tout l'historique)
+  #   - Configurer le remote git vers ${GITHUB_WORKSPACE} (mode local act)
+  #   - Lancer npx semantic-release
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # EXERCICE 2 : Ajouter un job "publish" ici
+  # Ce job doit :
+  #   - Dépendre du job "semantic-release"
+  #   - S'exécuter uniquement sur la branche main
+  #   - Récupérer la version depuis package.json
+  #   - Publier l'artefact vers Verdaccio (http://localhost:4873)
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # EXERCICE 3 : Ajouter un job "deploy" ici
+  # Ce job doit :
+  #   - Dépendre du job "publish"
+  #   - S'exécuter uniquement sur la branche main
+  #   - Se connecter au serveur SSH-target (deployer@localhost:2222)
+  #   - Installer l'artefact depuis Verdaccio, redémarrer avec pm2
+  #   - Effectuer un smoke test : curl http://localhost:3001/health → 200
+  # ─────────────────────────────────────────────────────────────────────────────
