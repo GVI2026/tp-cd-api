@@ -8,7 +8,7 @@ Ce dépôt sert de support à la partie pratique du cours-04. La pipeline CI est
 
 À l'issue du TP, vous devez être capables de :
 
-- Configurer Semantic Release pour automatiser le versioning à partir des Conventional Commits
+- Configurer **commit-and-tag-version** pour automatiser le versioning à partir des Conventional Commits
 - Publier un artefact npm vers un registre privé (Verdaccio)
 - Déployer automatiquement via SSH sur un serveur cible
 - Valider un déploiement avec un smoke test
@@ -25,7 +25,7 @@ Ce dépôt sert de support à la partie pratique du cours-04. La pipeline CI est
 | Prettier | Formatage du code |
 | ESLint + SonarJS | Analyse statique |
 | Trivy | Scan de vulnérabilités |
-| Semantic Release | Versioning automatique (Conventional Commits → SemVer) |
+| commit-and-tag-version | Versioning automatique (Conventional Commits → SemVer) |
 | Verdaccio | Registre npm privé local (port 4873) |
 | SSH-target | Serveur de déploiement simulé (port 2222, app sur 3001) |
 | `act` | Exécution locale des workflows GitHub Actions |
@@ -110,7 +110,7 @@ ssh -p 2222 deployer@localhost "echo ok"
 install → format-lint → tests → tests-e2e → build → security
 ```
 
-Votre mission : ajouter `semantic-release → publish → deploy` après `security`.
+Votre mission : ajouter `release → publish → deploy` après `security`.
 
 ---
 

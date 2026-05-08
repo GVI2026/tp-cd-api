@@ -28,6 +28,8 @@ packages:
 server:
   keepAliveTimeout: 60
 
+max_body_size: 30mb
+
 middlewares:
   audit:
     enabled: true

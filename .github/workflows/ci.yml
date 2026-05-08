@@ -145,21 +145,22 @@ jobs:
         run: trivy fs --exit-code 0 --severity CRITICAL,HIGH --no-progress .
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # EXERCICE 1 : Ajouter un job "semantic-release" ici
+  # EXERCICE 1 : Ajouter un job "release" ici
   # Ce job doit :
   #   - Dépendre du job "security"
   #   - S'exécuter uniquement sur la branche main
-  #   - Checkout avec fetch-depth: 0 (pour que semantic-release lise tout l'historique)
-  #   - Configurer le remote git vers ${GITHUB_WORKSPACE} (mode local act)
-  #   - Lancer npx semantic-release
+  #   - Checkout avec fetch-depth: 0 (pour lire tout l'historique git)
+  #   - Configurer git user (name + email) pour le commit de version
+  #   - Lancer npx commit-and-tag-version
   # ─────────────────────────────────────────────────────────────────────────────
 
   # ─────────────────────────────────────────────────────────────────────────────
   # EXERCICE 2 : Ajouter un job "publish" ici
   # Ce job doit :
-  #   - Dépendre du job "semantic-release"
+  #   - Dépendre du job "release"
   #   - S'exécuter uniquement sur la branche main
-  #   - Récupérer la version depuis package.json
+  #   - Télécharger l'artefact build produit par le job "build"
+  #   - Configurer l'authentification npm pour Verdaccio
   #   - Publier l'artefact vers Verdaccio (http://localhost:4873)
   # ─────────────────────────────────────────────────────────────────────────────
 
